@@ -1,0 +1,250 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  CASUAL
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocType {
+  CONTRACT
+  ID
+  RESUME
+  CERTIFICATE
+  OTHER
+}
+
+enum SurveyStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum NotificationType {
+  LEAVE_UPDATE
+  SURVEY_INVITE
+  COMPANY_ANNOUNCEMENT
+  SYSTEM
+}
+
+// Models
+model User {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  password  String      // Hashed with bcrypt
+  firstName String
+  lastName  String
+  role      Role        @default(EMPLOYEE)
+  status    UserStatus  @default(ACTIVE)
+  
+  // Hierarchy
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  managerId    String?
+  manager      User?       @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates User[]      @relation("ManagerSubordinates")
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  leaveRequests       LeaveRequest[]        @relation("LeaveApplicant")
+  approvedLeaves      LeaveRequest[]        @relation("LeaveApprover")
+  leaveBalances       LeaveBalance[]
+  attachments         Attachment[]
+  auditLogs           AuditLog[]
+  surveysCreated      Survey360[]           @relation("SurveyCreator")
+  surveysAsSubject    Survey360[]           @relation("SurveySubject")
+  surveyParticipations SurveyParticipant[]
+  surveyResponses     SurveyResponse[]
+  notificationsCreated Notification[]       @relation("NotificationCreator")
+  notificationRecipients NotificationRecipient[]
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  employees User[]
+}
+
+model LeaveRequest {
+  id          String      @id @default(uuid())
+  applicantId String
+  approverId  String?
+  type        LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      LeaveStatus @default(PENDING)
+  workingDays Int?        // Calculated excluding weekends/holidays
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  applicant User  @relation("LeaveApplicant", fields: [applicantId], references: [id])
+  approver  User? @relation("LeaveApprover", fields: [approverId], references: [id])
+}
+
+model LeaveBalance {
+  id         String    @id @default(uuid())
+  userId     String
+  type       LeaveType
+  year       Int
+  totalDays  Int
+  usedDays   Int       @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, type, year])
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  isRecurring Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attachment {
+  id       String  @id @default(uuid())
+  userId   String
+  fileName String
+  fileUrl  String
+  docType  DocType
+  fileSize Int?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Survey360 {
+  id          String       @id @default(uuid())
+  subjectId   String
+  creatorId   String
+  status      SurveyStatus @default(DRAFT)
+  deadline    DateTime
+  isAnonymous Boolean      @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  subject      User                @relation("SurveySubject", fields: [subjectId], references: [id])
+  creator      User                @relation("SurveyCreator", fields: [creatorId], references: [id])
+  participants SurveyParticipant[]
+  responses    SurveyResponse[]
+}
+
+model SurveyParticipant {
+  id           String  @id @default(uuid())
+  surveyId     String
+  userId       String
+  hasResponded Boolean @default(false)
+  
+  survey Survey360 @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user   User      @relation(fields: [userId], references: [id])
+  
+  @@unique([surveyId, userId])
+}
+
+model SurveyResponse {
+  id           String  @id @default(uuid())
+  surveyId     String
+  respondentId String?
+  
+  // Ratings (1-5 scale)
+  communicationRating Int?
+  leadershipRating    Int?
+  collaborationRating Int?
+  
+  // Comments
+  strengths    String?
+  improvements String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  survey     Survey360 @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondent User?     @relation(fields: [respondentId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  type      NotificationType
+  creatorId String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  creator    User?                   @relation("NotificationCreator", fields: [creatorId], references: [id])
+  recipients NotificationRecipient[]
+}
+
+model NotificationRecipient {
+  id             String    @id @default(uuid())
+  notificationId String
+  userId         String
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+  
+  @@unique([notificationId, userId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   // e.g., "USER_DEACTIVATED", "LEAVE_APPROVED"
+  targetId   String?  // ID of affected resource
+  targetType String?  // e.g., "User", "LeaveRequest"
+  metadata   String?  // JSON string for additional data
+  ipAddress  String?
+  
+  createdAt DateTime @default(now())
+  
+  user User? @relation(fields: [userId], references: [id])
+}
