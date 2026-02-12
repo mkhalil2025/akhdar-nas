@@ -6,6 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { LeaveModule } from './modules/leave/leave.module';
 
 @Module({
     imports: [
@@ -34,8 +35,8 @@ import { AuthModule } from './modules/auth/auth.module';
 
         // Feature Modules
         AuthModule,
+        LeaveModule,
         // UsersModule,
-        // LeaveModule,
         // ArchiveModule,
         // Survey360Module,
         // NotificationModule,
