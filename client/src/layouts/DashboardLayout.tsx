@@ -17,6 +17,7 @@ import {
     Menu,
     MenuItem,
     Divider,
+    Badge,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -61,7 +62,6 @@ const DashboardLayout: React.FC = () => {
         { text: 'Leave Requests', icon: <EventNote />, path: '/leaves' },
         { text: 'Documents', icon: <Folder />, path: '/documents' },
         { text: '360 Surveys', icon: <Assessment />, path: '/surveys' },
-        { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
         ...(user?.role === 'ADMIN' || user?.role === 'MANAGER'
             ? [{ text: 'Team', icon: <People />, path: '/team' }]
             : []),
@@ -69,18 +69,56 @@ const DashboardLayout: React.FC = () => {
 
     const drawer = (
         <Box>
-            <Toolbar sx={{ bgcolor: '#2E7D32', color: 'white' }}>
+            <Toolbar
+                sx={{
+                    bgcolor: 'white',
+                    color: '#2E7D32',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    py: 3,
+                    gap: 1,
+                    borderBottom: '1px solid #e0e0e0',
+                }}
+            >
+                <Box
+                    component="img"
+                    src="/logo.png"
+                    alt="AkhdarNas Logo"
+                    sx={{
+                        height: 60,
+                        mb: 1,
+                    }}
+                />
                 <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700 }}>
                     ناس أخضر
                 </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                    HR Portal
+                </Typography>
             </Toolbar>
             <Divider />
-            <List>
+            <List sx={{ px: 1, pt: 2 }}>
                 {menuItems.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton onClick={() => navigate(item.path)}>
-                            <ListItemIcon sx={{ color: '#2E7D32' }}>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.text} />
+                    <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                        <ListItemButton
+                            onClick={() => navigate(item.path)}
+                            sx={{
+                                borderRadius: 2,
+                                '&:hover': {
+                                    bgcolor: 'rgba(46, 125, 50, 0.08)',
+                                },
+                            }}
+                        >
+                            <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={item.text}
+                                primaryTypographyProps={{
+                                    fontSize: '0.95rem',
+                                    fontWeight: 500,
+                                }}
+                            />
                         </ListItemButton>
                     </ListItem>
                 ))}
@@ -113,6 +151,19 @@ const DashboardLayout: React.FC = () => {
                     <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         AkhdarNas Portal
                     </Typography>
+                    <IconButton
+                        onClick={() => navigate('/notifications')}
+                        sx={{
+                            mr: 2,
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.08)',
+                            },
+                        }}
+                    >
+                        <Badge badgeContent={0} color="error">
+                            <Notifications sx={{ color: 'text.secondary' }} />
+                        </Badge>
+                    </IconButton>
                     <IconButton onClick={handleMenuOpen}>
                         <Avatar sx={{ bgcolor: '#2E7D32' }}>
                             {user?.firstName?.[0]}{user?.lastName?.[0]}

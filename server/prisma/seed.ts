@@ -75,6 +75,24 @@ async function main() {
         data: { departmentId: department.id },
     });
 
+    // Create default leave types
+    const plannedLeave = await prisma.leaveType.upsert({
+        where: { name: 'Planned Leave' },
+        update: {},
+        create: { name: 'Planned Leave' },
+    });
+    const casualLeave = await prisma.leaveType.upsert({
+        where: { name: 'Casual Leave' },
+        update: {},
+        create: { name: 'Casual Leave' },
+    });
+    const sickLeave = await prisma.leaveType.upsert({
+        where: { name: 'Sick Leave' },
+        update: {},
+        create: { name: 'Sick Leave' },
+    });
+    console.log('✅ Leave types created: Planned, Casual, Sick');
+
     console.log('\n🎉 Seeding complete!\n');
     console.log('Test Credentials:');
     console.log('┌─────────────────────────────────────────┐');

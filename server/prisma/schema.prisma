@@ -22,13 +22,6 @@ enum UserStatus {
   INACTIVE
 }
 
-enum LeaveType {
-  ANNUAL
-  SICK
-  CASUAL
-  UNPAID
-}
-
 enum LeaveStatus {
   PENDING
   APPROVED
@@ -100,11 +93,22 @@ model Department {
   employees User[]
 }
 
+// Configurable Leave Types (Admin can add/edit/delete)
+model LeaveType {
+  id        String   @id @default(uuid())
+  name      String   @unique // e.g., "Planned Leave", "Sick Leave", "Casual Leave"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  leaveRequests LeaveRequest[]
+  leaveBalances LeaveBalance[]
+}
+
 model LeaveRequest {
   id          String      @id @default(uuid())
   applicantId String
   approverId  String?
-  type        LeaveType
+  leaveTypeId String
   startDate   DateTime
   endDate     DateTime
   reason      String
@@ -114,14 +118,15 @@ model LeaveRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  applicant User  @relation("LeaveApplicant", fields: [applicantId], references: [id])
-  approver  User? @relation("LeaveApprover", fields: [approverId], references: [id])
+  applicant User      @relation("LeaveApplicant", fields: [applicantId], references: [id])
+  approver  User?     @relation("LeaveApprover", fields: [approverId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
 }
 
 model LeaveBalance {
   id         String    @id @default(uuid())
   userId     String
-  type       LeaveType
+  leaveTypeId String
   year       Int
   totalDays  Int
   usedDays   Int       @default(0)
@@ -129,9 +134,10 @@ model LeaveBalance {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  user User @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
   
-  @@unique([userId, type, year])
+  @@unique([userId, leaveTypeId, year])
 }
 
 model Holiday {
