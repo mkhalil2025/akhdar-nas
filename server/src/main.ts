@@ -16,6 +16,9 @@ async function bootstrap() {
         credentials: true,
     });
 
+    // Global API prefix
+    app.setGlobalPrefix('api');
+
     // Global validation pipe
     app.useGlobalPipes(
         new ValidationPipe({
@@ -37,7 +40,8 @@ async function bootstrap() {
 
     const port = process.env.PORT || 3000;
     await app.listen(port);
-    console.log(`🚀 AkhdarNas API running on: http://localhost:${port}`);
+    console.log(`🚀 AkhdarNas API running on: http://localhost:${port}/api`);
+    console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
     console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
 }
 

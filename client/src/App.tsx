@@ -7,6 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import LeaveRequestPage from './pages/LeaveRequestPage';
+import MyLeavesPage from './pages/MyLeavesPage';
+import LeaveApprovalsPage from './pages/LeaveApprovalsPage';
 
 const theme = createTheme({
     palette: {
@@ -48,7 +51,12 @@ const App: React.FC = () => {
                         >
                             <Route index element={<Navigate to="/dashboard" replace />} />
                             <Route path="dashboard" element={<DashboardPage />} />
-                            <Route path="leaves" element={<div>Leave Requests (Coming Soon)</div>} />
+                            <Route path="leaves">
+                                <Route index element={<Navigate to="/leaves/my-requests" replace />} />
+                                <Route path="request" element={<LeaveRequestPage />} />
+                                <Route path="my-requests" element={<MyLeavesPage />} />
+                                <Route path="approvals" element={<LeaveApprovalsPage />} />
+                            </Route>
                             <Route path="documents" element={<div>Documents (Coming Soon)</div>} />
                             <Route path="surveys" element={<div>360 Surveys (Coming Soon)</div>} />
                             <Route path="notifications" element={<div>Notifications (Coming Soon)</div>} />
@@ -64,3 +72,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

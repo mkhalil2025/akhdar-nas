@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     AppBar,
     Box,
@@ -18,6 +18,7 @@ import {
     MenuItem,
     Divider,
     Badge,
+    Collapse,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -29,6 +30,11 @@ import {
     People,
     Logout,
     AccountCircle,
+    ExpandLess,
+    ExpandMore,
+    Add as AddIcon,
+    List as ListIcon,
+    CheckCircle as ApprovalsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -37,8 +43,10 @@ const drawerWidth = 260;
 const DashboardLayout: React.FC = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [leaveMenuOpen, setLeaveMenuOpen] = useState(true);
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -57,15 +65,7 @@ const DashboardLayout: React.FC = () => {
         navigate('/login');
     };
 
-    const menuItems = [
-        { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-        { text: 'Leave Requests', icon: <EventNote />, path: '/leaves' },
-        { text: 'Documents', icon: <Folder />, path: '/documents' },
-        { text: '360 Surveys', icon: <Assessment />, path: '/surveys' },
-        ...(user?.role === 'ADMIN' || user?.role === 'MANAGER'
-            ? [{ text: 'Team', icon: <People />, path: '/team' }]
-            : []),
-    ];
+    const isManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
     const drawer = (
         <Box>
@@ -98,10 +98,163 @@ const DashboardLayout: React.FC = () => {
             </Toolbar>
             <Divider />
             <List sx={{ px: 1, pt: 2 }}>
-                {menuItems.map((item) => (
-                    <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                {/* Dashboard */}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                        onClick={() => navigate('/dashboard')}
+                        selected={location.pathname === '/dashboard'}
+                        sx={{
+                            borderRadius: 2,
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.08)',
+                            },
+                            '&.Mui-selected': {
+                                bgcolor: 'rgba(46, 125, 50, 0.12)',
+                                '&:hover': {
+                                    bgcolor: 'rgba(46, 125, 50, 0.16)',
+                                },
+                            },
+                        }}
+                    >
+                        <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
+                            <Dashboard />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary="Dashboard"
+                            primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                            }}
+                        />
+                    </ListItemButton>
+                </ListItem>
+
+                {/* Leave Management with Submenu */}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                        onClick={() => setLeaveMenuOpen(!leaveMenuOpen)}
+                        sx={{
+                            borderRadius: 2,
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.08)',
+                            },
+                        }}
+                    >
+                        <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
+                            <EventNote />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary="Leave Management"
+                            primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                            }}
+                        />
+                        {leaveMenuOpen ? <ExpandLess /> : <ExpandMore />}
+                    </ListItemButton>
+                </ListItem>
+                <Collapse in={leaveMenuOpen} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
                         <ListItemButton
-                            onClick={() => navigate(item.path)}
+                            sx={{ pl: 4, borderRadius: 2, mx: 1 }}
+                            onClick={() => navigate('/leaves/request')}
+                            selected={location.pathname === '/leaves/request'}
+                        >
+                            <ListItemIcon sx={{ color: '#2E7D32', minWidth: 36 }}>
+                                <AddIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="New Request"
+                                primaryTypographyProps={{ fontSize: '0.9rem' }}
+                            />
+                        </ListItemButton>
+                        <ListItemButton
+                            sx={{ pl: 4, borderRadius: 2, mx: 1 }}
+                            onClick={() => navigate('/leaves/my-requests')}
+                            selected={location.pathname === '/leaves/my-requests'}
+                        >
+                            <ListItemIcon sx={{ color: '#2E7D32', minWidth: 36 }}>
+                                <ListIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="My Requests"
+                                primaryTypographyProps={{ fontSize: '0.9rem' }}
+                            />
+                        </ListItemButton>
+                        {isManager && (
+                            <ListItemButton
+                                sx={{ pl: 4, borderRadius: 2, mx: 1 }}
+                                onClick={() => navigate('/leaves/approvals')}
+                                selected={location.pathname === '/leaves/approvals'}
+                            >
+                                <ListItemIcon sx={{ color: '#2E7D32', minWidth: 36 }}>
+                                    <ApprovalsIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Approvals"
+                                    primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                />
+                            </ListItemButton>
+                        )}
+                    </List>
+                </Collapse>
+
+                {/* Documents */}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                        onClick={() => navigate('/documents')}
+                        selected={location.pathname === '/documents'}
+                        sx={{
+                            borderRadius: 2,
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.08)',
+                            },
+                        }}
+                    >
+                        <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
+                            <Folder />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary="Documents"
+                            primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                            }}
+                        />
+                    </ListItemButton>
+                </ListItem>
+
+                {/* 360 Surveys */}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                        onClick={() => navigate('/surveys')}
+                        selected={location.pathname === '/surveys'}
+                        sx={{
+                            borderRadius: 2,
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.08)',
+                            },
+                        }}
+                    >
+                        <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
+                            <Assessment />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary="360 Surveys"
+                            primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                            }}
+                        />
+                    </ListItemButton>
+                </ListItem>
+
+                {/* Team Management (Admin & Manager only) */}
+                {isManager && (
+                    <ListItem disablePadding sx={{ mb: 0.5 }}>
+                        <ListItemButton
+                            onClick={() => navigate('/team')}
+                            selected={location.pathname === '/team'}
                             sx={{
                                 borderRadius: 2,
                                 '&:hover': {
@@ -110,10 +263,10 @@ const DashboardLayout: React.FC = () => {
                             }}
                         >
                             <ListItemIcon sx={{ color: '#2E7D32', minWidth: 40 }}>
-                                {item.icon}
+                                <People />
                             </ListItemIcon>
                             <ListItemText
-                                primary={item.text}
+                                primary="Team"
                                 primaryTypographyProps={{
                                     fontSize: '0.95rem',
                                     fontWeight: 500,
@@ -121,7 +274,7 @@ const DashboardLayout: React.FC = () => {
                             />
                         </ListItemButton>
                     </ListItem>
-                ))}
+                )}
             </List>
         </Box>
     );
